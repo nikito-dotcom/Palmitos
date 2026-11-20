@@ -1,0 +1,404 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Administración · Panadería Palmitos</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --kraft: #D6BF96;
+      --kraft-claro: #EFE4CF;
+      --kraft-oscuro: #A88B5E;
+      --papel: #FFFDF9;
+      --tinta: #1D3B8F;
+      --tinta-oscura: #142B6B;
+      --miga: #2B2420;
+      --miga-suave: #6B5E52;
+      --manteca: #F3C548;
+      --error: #B3261E;
+      --fuente: "Archivo", system-ui, -apple-system, "Segoe UI", sans-serif;
+      --borde: #e3d8c6;
+      --sombra: 0 14px 38px #392b1a12;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--papel); color: var(--miga); font: 400 15px/1.5 var(--fuente); }
+    button, input, select { font: inherit; }
+    button { cursor: pointer; }
+    [hidden] { display: none !important; }
+    .sello { width: 82px; height: 82px; border: 2px solid var(--tinta); border-radius: 50%; display: grid; place-items: center; color: var(--tinta); text-align: center; position: relative; transform: rotate(-8deg); flex: none; }
+    .sello::before, .sello::after { content: "✳"; position: absolute; font-size: 12px; top: 8px; }
+    .sello::before { left: 13px; } .sello::after { right: 13px; }
+    .sello__inner { border: 1px dashed var(--tinta); border-radius: 50%; width: 68px; height: 68px; display: grid; align-content: center; }
+    .sello strong { font: 800 16px/1 var(--fuente); letter-spacing: .02em; }
+    .sello small { font-size: 8px; text-transform: uppercase; letter-spacing: .1em; margin-top: 4px; }
+    .button { border: 0; border-radius: 7px; padding: 10px 15px; font-weight: 700; color: white; background: var(--tinta); transition: .15s ease; }
+    .button:hover { background: var(--tinta-oscura); transform: translateY(-1px); }
+    .button:disabled { opacity: .55; cursor: wait; transform: none; }
+    .button--light { color: var(--tinta); background: white; border: 1px solid var(--borde); }
+    .button--light:hover { background: var(--kraft-claro); }
+    .button--danger { background: var(--error); }
+    .button--small { padding: 6px 10px; font-size: 13px; }
+    .login { min-height: 100vh; display: grid; place-items: center; padding: 24px; background: radial-gradient(ellipse at 50% 0%, var(--kraft-claro), transparent 62%), var(--papel); }
+    .login__card { width: min(100%, 430px); background: #fff; border: 1px solid var(--borde); border-radius: 18px; padding: 34px; box-shadow: var(--sombra); }
+    .login__brand { display: flex; align-items: center; gap: 18px; margin-bottom: 26px; }
+    .login h1 { margin: 0; color: var(--tinta); font-size: 25px; line-height: 1.15; }
+    .login__brand p { margin: 5px 0 0; color: var(--miga-suave); }
+    .field { display: grid; gap: 6px; margin: 15px 0; }
+    .field label { font-weight: 700; font-size: 14px; }
+    .field input, .field select, .filter select { width: 100%; min-height: 43px; border: 1px solid #cfc2ad; border-radius: 7px; background: #fff; color: var(--miga); padding: 9px 11px; }
+    .field input:focus, .field select:focus, .filter select:focus { outline: 3px solid #1d3b8f22; border-color: var(--tinta); }
+    .error { color: var(--error); font-size: 14px; margin: 10px 0; }
+    .login__submit { width: 100%; margin-top: 8px; }
+    .app { min-height: 100vh; }
+    .topbar { min-height: 86px; padding: 12px 28px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--borde); background: #fff; position: sticky; top: 0; z-index: 5; }
+    .topbar__brand { display: flex; align-items: center; gap: 13px; color: var(--tinta); }
+    .topbar .sello { width: 56px; height: 56px; }
+    .topbar .sello__inner { width: 46px; height: 46px; }
+    .topbar .sello strong { font-size: 12px; }
+    .topbar .sello small { font-size: 6px; }
+    .topbar .sello::before, .topbar .sello::after { top: 5px; font-size: 9px; }
+    .topbar .sello::before { left: 8px; } .topbar .sello::after { right: 8px; }
+    .topbar h1 { margin: 0; font-size: 18px; }
+    .topbar__right { display: flex; align-items: center; gap: 16px; }
+    .employee { color: var(--miga-suave); font-size: 14px; }
+    .layout { display: grid; grid-template-columns: 230px minmax(0, 1fr); min-height: calc(100vh - 86px); }
+    .sidebar { padding: 24px 16px; background: var(--kraft-claro); border-right: 1px solid var(--borde); }
+    .sidebar__label { margin: 0 12px 10px; color: var(--miga-suave); font-size: 11px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
+    .nav { display: grid; gap: 5px; }
+    .nav button { text-align: left; border: 0; border-radius: 8px; background: transparent; color: var(--miga); padding: 11px 12px; font-weight: 700; }
+    .nav button:hover, .nav button.active { color: var(--tinta); background: #fff; }
+    .main { padding: 30px clamp(18px, 3.4vw, 52px) 56px; min-width: 0; }
+    .page-head { display: flex; justify-content: space-between; align-items: end; gap: 15px; margin: 0 0 22px; }
+    .page-head h2 { margin: 0; font-size: clamp(25px, 3vw, 34px); color: var(--tinta); line-height: 1.15; }
+    .page-head p { margin: 5px 0 0; color: var(--miga-suave); }
+    .panel { background: #fff; border: 1px solid var(--borde); border-radius: 12px; box-shadow: var(--sombra); overflow: hidden; }
+    .panel__head { padding: 17px 20px; border-bottom: 1px solid var(--borde); display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+    .panel__head h3 { margin: 0; font-size: 17px; }
+    .filters { display: flex; flex-wrap: wrap; gap: 9px; }
+    .filter select { min-height: 38px; width: auto; min-width: 148px; padding: 7px 10px; }
+    .table-wrap { overflow-x: auto; }
+    table { border-collapse: collapse; width: 100%; min-width: 700px; }
+    th, td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #eee8df; vertical-align: middle; }
+    th { background: #fbf8f2; color: var(--miga-suave); font-size: 11px; letter-spacing: .06em; text-transform: uppercase; white-space: nowrap; }
+    tbody tr:last-child td { border-bottom: 0; }
+    tbody tr:hover { background: #fffdf8; }
+    .muted { color: var(--miga-suave); font-size: 13px; }
+    .tag { display: inline-flex; align-items: center; gap: 6px; border-radius: 99px; padding: 4px 9px; background: var(--kraft-claro); font-size: 12px; font-weight: 700; white-space: nowrap; }
+    .tag--blue { color: var(--tinta); background: #e9edfa; }
+    .tag--green { color: #27613f; background: #e5f2e9; }
+    .tag--red { color: #8b251e; background: #f9e5e2; }
+    .tag--yellow { color: #725613; background: #fff4cb; }
+    .actions { display: flex; flex-wrap: wrap; gap: 7px; }
+    .empty { padding: 32px 20px; color: var(--miga-suave); text-align: center; }
+    .loading { padding: 25px; color: var(--miga-suave); }
+    .notice { border-radius: 8px; padding: 11px 14px; margin: 0 0 16px; background: #e9edfa; color: var(--tinta); }
+    .notice--error { background: #f9e5e2; color: var(--error); }
+    .ship-groups { display: grid; gap: 18px; }
+    .ship-group { border: 1px solid var(--borde); border-radius: 12px; background: #fff; overflow: hidden; box-shadow: var(--sombra); }
+    .ship-group h3 { margin: 0; padding: 13px 17px; color: var(--tinta); background: var(--kraft-claro); font-size: 17px; }
+    .ship-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 0; }
+    .ship { padding: 16px 18px; border-top: 1px solid var(--borde); }
+    .ship__top { display: flex; justify-content: space-between; gap: 8px; }
+    .ship p { margin: 7px 0 0; }
+    .stock-low td { background: #fff9e7; }
+    .stock-number { font-weight: 800; }
+    .stock-low .stock-number { color: #9a4b00; }
+    .report-grid { display: grid; gap: 18px; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .report-card { background: #fff; border: 1px solid var(--borde); border-radius: 12px; box-shadow: var(--sombra); overflow: hidden; min-width: 0; }
+    .report-card h3 { margin: 0; padding: 16px 18px; color: var(--tinta); border-bottom: 1px solid var(--borde); font-size: 17px; }
+    .report-card .table-wrap { max-height: 420px; }
+    .report-card table { min-width: 440px; }
+    .report-card td, .report-card th { padding: 10px 12px; }
+    .detail { display: grid; gap: 18px; }
+    .detail__head { display: flex; align-items: start; justify-content: space-between; gap: 14px; padding: 20px; border-bottom: 1px solid var(--borde); }
+    .detail__head h3 { margin: 0 0 6px; color: var(--tinta); font-size: 22px; }
+    .detail__meta { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; padding: 17px 20px; }
+    .detail__meta div { min-width: 0; }
+    .detail__meta small { display: block; color: var(--miga-suave); }
+    .detail__meta strong { overflow-wrap: anywhere; }
+    .detail__section { border-top: 1px solid var(--borde); padding: 16px 20px; }
+    .detail__section h4 { margin: 0 0 10px; color: var(--tinta); }
+    .detail__totals { display: flex; justify-content: end; gap: 28px; padding: 14px 20px; border-top: 1px solid var(--borde); font-weight: 700; }
+    .modal-backdrop { position: fixed; inset: 0; z-index: 20; background: #211b1688; display: grid; place-items: center; padding: 18px; }
+    .modal { background: var(--papel); width: min(100%, 790px); max-height: min(88vh, 880px); overflow: auto; border-radius: 14px; box-shadow: 0 24px 70px #0004; }
+    .modal__foot { display: flex; gap: 8px; justify-content: end; padding: 15px 20px; border-top: 1px solid var(--borde); }
+    .stock-modal { width: min(100%, 430px); padding: 22px; }
+    .stock-modal h3 { margin: 0 0 16px; color: var(--tinta); }
+    .toast { position: fixed; z-index: 30; right: 20px; bottom: 20px; max-width: min(420px, calc(100vw - 40px)); padding: 12px 16px; border-radius: 8px; color: #fff; background: var(--tinta); box-shadow: var(--sombra); }
+    .toast.error { background: var(--error); }
+    @media (max-width: 850px) {
+      .layout { grid-template-columns: 1fr; }
+      .sidebar { padding: 10px 14px; border-right: 0; border-bottom: 1px solid var(--borde); }
+      .sidebar__label { display: none; }
+      .nav { display: flex; overflow-x: auto; }
+      .nav button { white-space: nowrap; }
+      .report-grid { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 560px) {
+      .topbar { padding: 10px 14px; }
+      .topbar__brand > div:last-child { display: none; }
+      .employee { display: none; }
+      .main { padding: 22px 13px 40px; }
+      .page-head { align-items: start; flex-direction: column; }
+      .panel__head { align-items: start; flex-direction: column; }
+      .filter, .filter select { width: 100%; }
+      .detail__meta { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .detail__head { flex-direction: column; }
+      .detail__totals { justify-content: space-between; gap: 8px; }
+      .login__card { padding: 25px 21px; }
+    }
+  </style>
+</head>
+<body>
+  <main id="login-view" class="login">
+    <form class="login__card" id="login-form">
+      <div class="login__brand">
+        <div class="sello"><div class="sello__inner"><strong>Palmitos</strong><small>Panadería</small></div></div>
+        <div><h1>Panel del personal</h1><p>Ingresá con tu cuenta de empleado.</p></div>
+      </div>
+      <div class="field"><label for="login-email">Email</label><input id="login-email" name="email" type="email" autocomplete="username" required></div>
+      <div class="field"><label for="login-password">Contraseña</label><input id="login-password" name="contrasena" type="password" autocomplete="current-password" required></div>
+      <p id="login-error" class="error" role="alert" hidden></p>
+      <button class="button login__submit" type="submit">Ingresar</button>
+    </form>
+  </main>
+
+  <div id="app-view" class="app" hidden>
+    <header class="topbar">
+      <div class="topbar__brand">
+        <div class="sello"><div class="sello__inner"><strong>Palmitos</strong><small>Panadería</small></div></div>
+        <div><h1>Administración</h1><span class="muted">Pedidos y gestión del local</span></div>
+      </div>
+      <div class="topbar__right"><span class="employee" id="employee-name"></span><button class="button button--light button--small" id="logout">Salir</button></div>
+    </header>
+    <div class="layout">
+      <aside class="sidebar">
+        <p class="sidebar__label">Gestión</p>
+        <nav class="nav" aria-label="Secciones administrativas">
+          <button class="active" data-screen="orders">Pedidos</button>
+          <button data-screen="shipping">Envíos pendientes</button>
+          <button data-screen="products">Productos y stock</button>
+          <button data-screen="reports">Reportes</button>
+        </nav>
+      </aside>
+      <main class="main">
+        <section id="screen-orders" class="screen">
+          <div class="page-head"><div><h2>Pedidos</h2><p>Revisá pagos y avanzá el estado de cada pedido.</p></div><button class="button button--light" data-refresh="orders">Actualizar</button></div>
+          <div id="orders-notice"></div>
+          <div class="panel">
+            <div class="panel__head"><h3>Todos los pedidos</h3><div class="filters">
+              <label class="filter"><span class="muted">Estado </span><select id="filter-status"><option value="">Todos</option><option value="pendiente">Pendiente</option><option value="en_preparacion">En preparación</option><option value="listo">Listo</option><option value="en_camino">En camino</option><option value="entregado">Entregado</option><option value="cancelado">Cancelado</option></select></label>
+              <label class="filter"><span class="muted">Pago </span><select id="filter-payment"><option value="">Todos</option><option value="pendiente">Pendiente</option><option value="confirmado">Confirmado</option></select></label>
+              <label class="filter"><span class="muted">Entrega </span><select id="filter-delivery"><option value="">Todas</option><option value="envio">Envío</option><option value="retiro">Retiro</option></select></label>
+            </div></div>
+            <div id="orders-table" class="table-wrap"><div class="loading">Cargando pedidos…</div></div>
+          </div>
+        </section>
+
+        <section id="screen-shipping" class="screen" hidden>
+          <div class="page-head"><div><h2>Envíos pendientes</h2><p>Pedidos para preparar y entregar, agrupados por barrio.</p></div><button class="button button--light" data-refresh="shipping">Actualizar</button></div>
+          <div id="shipping-content" class="ship-groups"><div class="loading">Cargando envíos…</div></div>
+        </section>
+
+        <section id="screen-products" class="screen" hidden>
+          <div class="page-head"><div><h2>Productos y stock</h2><p>Los productos con menos de 15 unidades aparecen resaltados.</p></div><button class="button button--light" data-refresh="products">Actualizar</button></div>
+          <div class="panel"><div class="panel__head"><h3>Inventario</h3><span class="muted" id="stock-count"></span></div><div id="products-table" class="table-wrap"><div class="loading">Cargando productos…</div></div></div>
+        </section>
+
+        <section id="screen-reports" class="screen" hidden>
+          <div class="page-head"><div><h2>Reportes</h2><p>Un resumen de ventas, clientes y proveedores.</p></div><button class="button button--light" data-refresh="reports">Actualizar</button></div>
+          <div id="reports-content" class="report-grid"><div class="loading">Cargando reportes…</div></div>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <div id="order-modal" class="modal-backdrop" hidden>
+    <section class="modal" role="dialog" aria-modal="true" aria-labelledby="order-modal-title">
+      <div id="order-detail"></div>
+      <div class="modal__foot"><button class="button button--light" id="close-order">Cerrar</button></div>
+    </section>
+  </div>
+  <div id="stock-modal" class="modal-backdrop" hidden>
+    <form class="modal stock-modal" id="stock-form" role="dialog" aria-modal="true" aria-labelledby="stock-modal-title">
+      <h3 id="stock-modal-title">Reponer stock</h3><p id="stock-product-label" class="muted"></p>
+      <input type="hidden" name="id_producto">
+      <div class="field"><label for="stock-quantity">Cantidad a sumar</label><input id="stock-quantity" name="cantidad" type="number" min="1" step="1" required></div>
+      <p id="stock-error" class="error" role="alert" hidden></p>
+      <div class="actions"><button class="button" type="submit">Reponer</button><button class="button button--light" type="button" id="close-stock">Cancelar</button></div>
+    </form>
+  </div>
+  <div id="toast" class="toast" role="status" hidden></div>
+
+  <script>
+    "use strict";
+    const API = "api/admin/";
+    const pesos = new Intl.NumberFormat("es-AR", { style: "currency", currency: "ARS", maximumFractionDigits: 0 });
+    const stateNames = { pendiente: "Pendiente", en_preparacion: "En preparación", listo: "Listo", en_camino: "En camino", entregado: "Entregado", cancelado: "Cancelado" };
+    let toastTimer;
+
+    async function api(file, data, method) {
+      const options = { method: method || (data === undefined ? "GET" : "POST"), credentials: "same-origin", headers: {} };
+      if (data !== undefined) { options.headers["Content-Type"] = "application/json"; options.body = JSON.stringify(data); }
+      let response;
+      try { response = await fetch(API + file, options); }
+      catch (_) { throw new Error("No hay conexión con el servidor. Abrí el proyecto desde http://localhost con Apache iniciado."); }
+      let json;
+      try { json = await response.json(); } catch (_) { throw new Error("El servidor respondió algo inesperado. Revisá PHP y la conexión con la base."); }
+      if (response.status === 401) { showLogin(); throw new Error(json.error || "La sesión venció. Ingresá de nuevo."); }
+      if (!response.ok || !json.ok) throw new Error(json.error || "No se pudo completar la acción.");
+      return json;
+    }
+    function toast(message, error) {
+      const box = document.getElementById("toast"); box.textContent = message; box.classList.toggle("error", !!error); box.hidden = false;
+      clearTimeout(toastTimer); toastTimer = setTimeout(() => box.hidden = true, 3600);
+    }
+    function showLogin(message) {
+      document.getElementById("app-view").hidden = true;
+      document.getElementById("login-view").hidden = false;
+      if (message) { const e = document.getElementById("login-error"); e.textContent = message; e.hidden = false; }
+    }
+    function showApp(employee) {
+      document.getElementById("login-view").hidden = true; document.getElementById("app-view").hidden = false;
+      document.getElementById("employee-name").textContent = employee || "Personal";
+      loadScreen("orders");
+    }
+    function safe(value) { return value == null || value === "" ? "—" : String(value); }
+    function badge(value, kind) {
+      const span = document.createElement("span"); span.className = "tag" + (kind ? " tag--" + kind : ""); span.textContent = value; return span;
+    }
+    function stateBadge(value) { return badge(stateNames[value] || safe(value), value === "entregado" ? "green" : value === "cancelado" ? "red" : value === "pendiente" ? "yellow" : "blue"); }
+    function cell(row, value) { const td = document.createElement("td"); td.append(value instanceof Node ? value : document.createTextNode(safe(value))); row.appendChild(td); return td; }
+    function makeTable(headings, rows) {
+      const wrap = document.createElement("div"); wrap.className = "table-wrap";
+      if (!rows.length) { const empty = document.createElement("div"); empty.className = "empty"; empty.textContent = "No hay datos para mostrar."; wrap.appendChild(empty); return wrap; }
+      const table = document.createElement("table"), thead = table.createTHead().insertRow(), tbody = table.createTBody();
+      headings.forEach(h => { const th = document.createElement("th"); th.textContent = h; thead.appendChild(th); });
+      rows.forEach(r => tbody.appendChild(r)); wrap.appendChild(table); return wrap;
+    }
+    function labelText(label, value) { const d = document.createElement("div"), small = document.createElement("small"), strong = document.createElement("strong"); small.textContent = label; strong.textContent = safe(value); d.append(small, strong); return d; }
+
+    document.getElementById("login-form").addEventListener("submit", async e => {
+      e.preventDefault(); const form = e.currentTarget, error = document.getElementById("login-error"), button = form.querySelector("button[type=submit]");
+      error.hidden = true; button.disabled = true;
+      try { const data = await api("iniciar_sesion.php", { email: form.email.value.trim(), contrasena: form.contrasena.value }); showApp(data.empleado.nombre); }
+      catch (err) { if (!document.getElementById("login-view").hidden) { error.textContent = err.message; error.hidden = false; } }
+      finally { button.disabled = false; }
+    });
+    document.getElementById("logout").addEventListener("click", async () => { try { await api("cerrar_sesion.php", {}); } catch (_) {} showLogin(); document.getElementById("login-form").reset(); });
+    document.querySelectorAll(".nav [data-screen]").forEach(button => button.addEventListener("click", () => {
+      document.querySelectorAll(".nav button").forEach(b => b.classList.toggle("active", b === button));
+      document.querySelectorAll(".screen").forEach(s => s.hidden = s.id !== "screen-" + button.dataset.screen); loadScreen(button.dataset.screen);
+    }));
+    document.querySelectorAll("[data-refresh]").forEach(b => b.addEventListener("click", () => loadScreen(b.dataset.refresh)));
+    ["filter-status", "filter-payment", "filter-delivery"].forEach(id => document.getElementById(id).addEventListener("change", loadOrders));
+    document.getElementById("close-order").addEventListener("click", () => document.getElementById("order-modal").hidden = true);
+    document.getElementById("order-modal").addEventListener("click", e => { if (e.target.id === "order-modal") e.currentTarget.hidden = true; });
+    document.getElementById("close-stock").addEventListener("click", () => document.getElementById("stock-modal").hidden = true);
+    document.getElementById("stock-modal").addEventListener("click", e => { if (e.target.id === "stock-modal") e.currentTarget.hidden = true; });
+
+    async function loadScreen(screen) {
+      try {
+        if (screen === "orders") await loadOrders();
+        if (screen === "shipping") await loadShipping();
+        if (screen === "products") await loadProducts();
+        if (screen === "reports") await loadReports();
+      } catch (e) { toast(e.message, true); }
+    }
+    async function loadOrders() {
+      const box = document.getElementById("orders-table"); box.innerHTML = '<div class="loading">Cargando pedidos…</div>';
+      const q = new URLSearchParams({ estado: document.getElementById("filter-status").value, estado_pago: document.getElementById("filter-payment").value, tipo_entrega: document.getElementById("filter-delivery").value });
+      const data = await api("pedidos.php?" + q.toString(), undefined, "GET");
+      const rows = data.pedidos.map(p => {
+        const tr = document.createElement("tr"); cell(tr, "#" + p.id_pedido); cell(tr, new Date(String(p.fecha).replace(" ", "T")).toLocaleString("es-AR")); cell(tr, p.cliente);
+        cell(tr, p.tipo_entrega === "envio" ? "Envío · " + safe(p.zona) : "Retiro"); cell(tr, stateBadge(p.estado)); cell(tr, badge(p.estado_pago === "confirmado" ? "Confirmado" : "Pendiente", p.estado_pago === "confirmado" ? "green" : "yellow")); cell(tr, pesos.format(Number(p.total)));
+        const actions = document.createElement("div"); actions.className = "actions"; const open = document.createElement("button"); open.className = "button button--light button--small"; open.textContent = "Ver"; open.addEventListener("click", () => openOrder(p.id_pedido)); actions.appendChild(open); cell(tr, actions); return tr;
+      });
+      box.replaceWith(makeTable(["Pedido", "Fecha", "Cliente", "Entrega", "Estado", "Pago", "Total", ""], rows)); document.querySelector("#screen-orders .panel").lastElementChild.id = "orders-table";
+    }
+    async function openOrder(id) {
+      const box = document.getElementById("order-detail"); box.innerHTML = '<div class="loading">Cargando pedido…</div>'; document.getElementById("order-modal").hidden = false;
+      try {
+        const data = await api("pedido.php?id_pedido=" + encodeURIComponent(id), undefined, "GET"), p = data.pedido;
+        const root = document.createElement("div"); root.className = "detail";
+        const head = document.createElement("div"); head.className = "detail__head";
+        const title = document.createElement("div"), h = document.createElement("h3"); h.id = "order-modal-title"; h.textContent = "Pedido #" + p.id_pedido; title.appendChild(h); title.append(stateBadge(p.estado));
+        const actions = document.createElement("div"); actions.className = "actions";
+        if (p.estado_pago !== "confirmado" && p.estado !== "cancelado") { const pay = document.createElement("button"); pay.className = "button button--small"; pay.textContent = "Confirmar pago"; pay.addEventListener("click", () => changeOrder(id, "confirmar_pago")); actions.appendChild(pay); }
+        if (p.estado !== "entregado" && p.estado !== "cancelado") {
+          const choices = nextStates(p.estado, p.tipo_entrega, p.estado_pago);
+          if (choices.length) { const select = document.createElement("select"); select.setAttribute("aria-label", "Nuevo estado"); choices.forEach(v => { const o = document.createElement("option"); o.value = v; o.textContent = stateNames[v]; select.appendChild(o); }); const change = document.createElement("button"); change.className = "button button--light button--small"; change.textContent = "Cambiar estado"; change.addEventListener("click", () => changeOrder(id, "cambiar_estado", select.value)); actions.append(select, change); }
+          const cancel = document.createElement("button"); cancel.className = "button button--danger button--small"; cancel.textContent = "Cancelar pedido"; cancel.addEventListener("click", () => { if (confirm("¿Cancelar el pedido #" + id + "?")) changeOrder(id, "cambiar_estado", "cancelado"); }); actions.appendChild(cancel);
+        }
+        head.append(title, actions); root.appendChild(head);
+        const meta = document.createElement("div"); meta.className = "detail__meta";
+        [["Fecha", new Date(String(p.fecha).replace(" ", "T")).toLocaleString("es-AR")], ["Cliente", p.cliente], ["Entrega", p.tipo_entrega === "envio" ? "Envío · " + safe(p.zona) : "Retiro"], ["Dirección", p.direccion_envio], ["Pago", p.estado_pago === "confirmado" ? "Confirmado" : "Pendiente"], ["Forma de pago", p.forma_pago]].forEach(x => meta.appendChild(labelText(x[0], x[1]))); root.appendChild(meta);
+        const products = document.createElement("div"); products.className = "detail__section"; const ph = document.createElement("h4"); ph.textContent = "Productos"; products.appendChild(ph);
+        const prows = data.productos.map(x => { const tr = document.createElement("tr"); cell(tr, x.producto); cell(tr, x.cantidad); cell(tr, pesos.format(Number(x.precio_unitario))); cell(tr, pesos.format(Number(x.subtotal))); return tr; }); products.appendChild(makeTable(["Producto", "Cantidad", "Precio unitario", "Subtotal"], prows)); root.appendChild(products);
+        const totals = document.createElement("div"); totals.className = "detail__totals"; totals.innerHTML = ""; ["Productos: " + pesos.format(Number(p.subtotal)), "Envío: " + pesos.format(Number(p.costo_envio)), "Total: " + pesos.format(Number(p.total))].forEach(t => { const span = document.createElement("span"); span.textContent = t; totals.appendChild(span); }); root.appendChild(totals);
+        const history = document.createElement("div"); history.className = "detail__section"; const hh = document.createElement("h4"); hh.textContent = "Historial de estados"; history.appendChild(hh);
+        const hrows = data.historial.map(x => { const tr = document.createElement("tr"); cell(tr, safe(x.estado_anterior) === "—" ? "Creado" : stateNames[x.estado_anterior] || x.estado_anterior); cell(tr, stateNames[x.estado_nuevo] || x.estado_nuevo); cell(tr, new Date(String(x.fecha_cambio).replace(" ", "T")).toLocaleString("es-AR")); return tr; }); history.appendChild(makeTable(["Desde", "Hasta", "Fecha"], hrows)); root.appendChild(history); box.replaceChildren(root);
+      } catch (e) { box.innerHTML = ""; const p = document.createElement("p"); p.className = "error"; p.textContent = e.message; box.appendChild(p); }
+    }
+    function nextStates(state, delivery, paid) {
+      const result = [];
+      if (state === "pendiente" && paid === "confirmado") result.push("en_preparacion");
+      if (state === "en_preparacion") result.push("listo");
+      if (state === "listo") result.push(delivery === "envio" ? "en_camino" : "entregado");
+      if (state === "en_camino") result.push("entregado");
+      return result;
+    }
+    async function changeOrder(id, action, state) {
+      try {
+        if (action === "confirmar_pago") await api("confirmar_pago.php", { id_pedido: Number(id) });
+        else await api("cambiar_estado.php", { id_pedido: Number(id), estado: state });
+        toast(action === "confirmar_pago" ? "Pago confirmado." : "Estado actualizado."); await Promise.all([loadOrders(), openOrder(id)]);
+      } catch (e) { toast(e.message, true); }
+    }
+    async function loadShipping() {
+      const box = document.getElementById("shipping-content"); box.replaceChildren();
+      const data = await api("envios.php"); const groups = new Map();
+      data.envios.forEach(x => { if (!groups.has(x.zona)) groups.set(x.zona, []); groups.get(x.zona).push(x); });
+      if (!groups.size) { box.innerHTML = '<div class="panel empty">No hay envíos pendientes.</div>'; return; }
+      [...groups.keys()].sort((a,b) => a.localeCompare(b,"es")).forEach(zone => {
+        const group = document.createElement("section"); group.className = "ship-group"; const h = document.createElement("h3"); h.textContent = zone; group.appendChild(h);
+        const list = document.createElement("div"); list.className = "ship-list";
+        groups.get(zone).forEach(x => { const card = document.createElement("article"); card.className = "ship"; const top = document.createElement("div"); top.className = "ship__top"; const strong = document.createElement("strong"); strong.textContent = "Pedido #" + x.id_pedido + " · " + safe(x.cliente); top.append(strong, stateBadge(x.estado)); card.appendChild(top);
+          [["Dirección",x.direccion_envio],["Teléfono",x.telefono],["Indicaciones",x.observaciones]].forEach(pair => { const p = document.createElement("p"); p.textContent = pair[0] + ": " + safe(pair[1]); card.appendChild(p); }); list.appendChild(card); });
+        group.appendChild(list); box.appendChild(group);
+      });
+    }
+    async function loadProducts() {
+      const box = document.getElementById("products-table"); box.innerHTML = '<div class="loading">Cargando productos…</div>';
+      const data = await api("productos_stock.php"); document.getElementById("stock-count").textContent = data.productos.length + " productos";
+      const rows = data.productos.map(p => { const tr = document.createElement("tr"); if (Number(p.stock_bajo)) tr.className = "stock-low"; cell(tr, p.nombre); cell(tr, p.categoria); cell(tr, p.activo ? "Activo" : "Inactivo"); const stock = document.createElement("span"); stock.className = "stock-number"; stock.textContent = p.stock; cell(tr, stock);
+        const action = document.createElement("button"); action.className = "button button--light button--small"; action.textContent = "Reponer stock"; action.addEventListener("click", () => showStockForm(p)); cell(tr, action); return tr; });
+      const table = makeTable(["Producto", "Categoría", "Disponible en tienda", "Stock", "Acción"], rows); box.replaceWith(table); document.querySelector("#screen-products .panel").lastElementChild.id = "products-table";
+    }
+    function showStockForm(product) { const form = document.getElementById("stock-form"); form.reset(); form.id_producto.value = product.id_producto; document.getElementById("stock-product-label").textContent = product.nombre + " · stock actual: " + product.stock; document.getElementById("stock-error").hidden = true; document.getElementById("stock-modal").hidden = false; document.getElementById("stock-quantity").focus(); }
+    document.getElementById("stock-form").addEventListener("submit", async e => {
+      e.preventDefault(); const form = e.currentTarget, error = document.getElementById("stock-error"), button = form.querySelector("button[type=submit]"); error.hidden = true; button.disabled = true;
+      try { await api("reponer_stock.php", { id_producto: Number(form.id_producto.value), cantidad: Number(form.cantidad.value) }); document.getElementById("stock-modal").hidden = true; toast("Stock repuesto."); await loadProducts(); }
+      catch (err) { error.textContent = err.message; error.hidden = false; } finally { button.disabled = false; }
+    });
+    async function loadReports() {
+      const box = document.getElementById("reports-content"); box.innerHTML = '<div class="loading">Cargando reportes…</div>';
+      const data = await api("reportes.php"); box.replaceChildren(
+        reportTable("Productos más vendidos", ["Producto", "Categoría", "Unidades", "Recaudado"], data.ranking.map(x => [x.nombre,x.categoria,x.unidades_vendidas,pesos.format(Number(x.recaudado))])),
+        reportTable("Recaudación por barrio", ["Barrio", "Pedidos", "Recaudado"], data.barrios.map(x => [x.barrio,x.pedidos,pesos.format(Number(x.recaudado))])),
+        reportTable("Clientes que más compraron", ["Cliente", "Email", "Total gastado"], data.clientes.map(x => [x.cliente,x.email,pesos.format(Number(x.total_gastado))])),
+        reportTable("Márgenes por proveedor", ["Producto", "Proveedor", "Costo", "Venta", "Margen"], data.proveedores.map(x => [x.producto,x.proveedor,pesos.format(Number(x.precio_costo)),pesos.format(Number(x.precio_venta)),pesos.format(Number(x.margen))]))
+      );
+    }
+    function reportTable(title, headings, data) { const section = document.createElement("section"); section.className = "report-card"; const h = document.createElement("h3"); h.textContent = title; section.appendChild(h); const rows = data.map(values => { const tr = document.createElement("tr"); values.forEach(v => cell(tr, v)); return tr; }); section.appendChild(makeTable(headings, rows)); return section; }
+    async function checkSession() {
+      try { const r = await api("sesion.php"); showApp(r.empleado.nombre); }
+      catch (_) { showLogin(); }
+    }
+    checkSession();
+  </script>
+</body>
+</html>
