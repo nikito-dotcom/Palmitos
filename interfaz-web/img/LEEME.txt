@@ -1,0 +1,3 @@
+Poné acá tus fotos propias en .jpg, con el nombre del producto en minúsculas,
+sin acentos y con guiones. Por ejemplo: medialuna-de-manteca.jpg, vigilante.jpg
+Si una foto no está, la página usa la de Wikimedia Commons o muestra el nombre como sello.

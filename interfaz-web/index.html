@@ -1,0 +1,1420 @@
+<!DOCTYPE html>
+<html lang="es-AR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Palmitos · Pedidos online</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&display=swap" rel="stylesheet">
+<style>
+  /* ---------- Colores y tipografía ----------
+     Inspirado en la bolsa de papel madera de panadería con el logo impreso en tinta azul. */
+  :root {
+    --kraft: #D6BF96;          /* papel madera */
+    --kraft-claro: #EFE4CF;
+    --kraft-oscuro: #A88B5E;
+    --papel: #FFFDF9;
+    --tinta: #1D3B8F;          /* tinta del sello */
+    --tinta-oscura: #142B6B;
+    --miga: #2B2420;           /* texto principal */
+    --miga-suave: #6B5E52;     /* texto secundario */
+    --manteca: #F3C548;
+    --error: #B3261E;
+    --fuente: "Archivo", system-ui, -apple-system, "Segoe UI", sans-serif;
+  }
+
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    font-family: var(--fuente);
+    font-size: 1rem;
+    line-height: 1.55;
+    color: var(--miga);
+    background: var(--papel);
+  }
+  img { display: block; max-width: 100%; }
+  [hidden] { display: none !important; }
+  :focus-visible { outline: 3px solid var(--tinta); outline-offset: 2px; }
+
+  /* ---------- Sello (logo) ---------- */
+  .sello {
+    display: inline-block;
+    color: var(--tinta);
+    border: 3px solid var(--tinta);
+    outline: 1px solid var(--tinta);
+    outline-offset: 3px;
+    padding: .35rem .9rem .45rem;
+    transform: rotate(-3deg);
+    text-align: center;
+    line-height: 1;
+  }
+  .sello__nombre {
+    display: block;
+    font-stretch: 70%;
+    font-weight: 800;
+    font-size: 2.6rem;
+    letter-spacing: .01em;
+  }
+  .sello__bajada {
+    display: block;
+    font-stretch: 100%;
+    font-weight: 500;
+    font-size: .8rem;
+    margin-top: .3rem;
+  }
+  .sello--chico .sello__nombre { font-size: 1.5rem; }
+  .sello--chico .sello__bajada { display: none; }
+  .sello--chico { border-width: 2px; padding: .2rem .55rem .3rem; flex: none; }
+  .sello__nombre { white-space: nowrap; }
+
+  /* ---------- Botones y formularios ---------- */
+  .boton {
+    font: inherit;
+    font-weight: 700;
+    font-size: 1rem;
+    padding: .85rem 1.3rem;
+    border-radius: 4px;
+    border: 2px solid var(--tinta);
+    cursor: pointer;
+    text-align: center;
+    width: 100%;
+  }
+  .boton--tinta { background: var(--tinta); color: #fff; }
+  .boton--tinta:hover { background: var(--tinta-oscura); border-color: var(--tinta-oscura); }
+  .boton--tinta:focus-visible { outline-color: var(--manteca); }
+  .boton--borde { background: transparent; color: var(--tinta); }
+  .boton--borde:hover { background: rgba(29, 59, 143, .08); }
+  .enlace {
+    font: inherit;
+    background: none;
+    border: 0;
+    padding: 0;
+    color: var(--tinta);
+    font-weight: 600;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    cursor: pointer;
+  }
+
+  .campo { display: grid; gap: .3rem; margin-bottom: 1rem; }
+  .campo label { font-weight: 600; font-size: .95rem; }
+  .campo input, .campo select {
+    font: inherit;
+    padding: .7rem .8rem;
+    border: 2px solid var(--kraft-oscuro);
+    border-radius: 4px;
+    background: var(--papel);
+    color: var(--miga);
+  }
+  .campo input:focus, .campo select:focus { border-color: var(--tinta); outline: none; box-shadow: 0 0 0 3px rgba(29,59,143,.2); }
+  .campo input[aria-invalid="true"] { border-color: var(--error); }
+  .campo__ayuda { font-size: .85rem; color: var(--miga-suave); }
+  .campo__error { font-size: .85rem; color: var(--error); font-weight: 600; min-height: 0; }
+  .fila-campos { display: grid; grid-template-columns: 1fr 1fr; gap: 0 .9rem; }
+  .aviso-conexion { margin-top: 2rem; max-width: 26rem; }
+  .boton:disabled { opacity: .7; cursor: wait; }
+  .error-general {
+    color: var(--error);
+    font-weight: 600;
+    background: #FBE9E7;
+    border-left: 4px solid var(--error);
+    padding: .6rem .8rem;
+    margin: 0 0 1rem;
+  }
+
+  /* ================= PANTALLA DE INICIO ================= */
+  .inicio {
+    min-height: 100vh;
+    display: grid;
+    grid-template-columns: 1.35fr 1fr;
+  }
+
+  /* Carrusel */
+  .carrusel {
+    position: relative;
+    overflow: hidden;
+    background: var(--kraft);
+    min-height: 100vh;
+  }
+  .carrusel__pista { position: absolute; inset: 0; }
+  .diapo {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    transition: opacity .8s ease;
+  }
+  .diapo.activa { opacity: 1; }
+  .diapo .foto { width: 100%; height: 100%; }
+  .diapo__etiqueta {
+    position: absolute;
+    left: 2rem;
+    bottom: 5.5rem;
+    background: var(--papel);
+    padding: .9rem 1.2rem 1rem;
+    border-left: 6px solid var(--tinta);
+    max-width: 22rem;
+  }
+  .diapo__nombre { margin: 0; font-stretch: 80%; font-weight: 800; font-size: 1.7rem; line-height: 1.1; color: var(--tinta); }
+  .diapo__precio { margin: .25rem 0 0; font-weight: 600; }
+  .carrusel__controles {
+    position: absolute;
+    left: 2rem;
+    bottom: 1.8rem;
+    display: flex;
+    align-items: center;
+    gap: .6rem;
+  }
+  .carrusel__boton {
+    width: 2.6rem; height: 2.6rem;
+    border-radius: 50%;
+    border: 2px solid var(--papel);
+    background: rgba(43, 36, 32, .55);
+    color: var(--papel);
+    font: inherit; font-size: 1.1rem; font-weight: 700;
+    cursor: pointer;
+    display: grid; place-items: center;
+  }
+  .carrusel__boton:hover { background: rgba(43, 36, 32, .8); }
+  .carrusel__puntos { display: flex; gap: .4rem; margin: 0 .4rem; }
+  .punto {
+    width: .75rem; height: .75rem;
+    border-radius: 50%;
+    border: 2px solid var(--papel);
+    background: transparent;
+    padding: 0;
+    cursor: pointer;
+  }
+  .punto[aria-current="true"] { background: var(--papel); }
+
+  /* Foto o reemplazo cuando no hay foto */
+  .foto { width: 100%; height: 100%; object-fit: cover; }
+  .sin-foto {
+    width: 100%; height: 100%;
+    background: var(--kraft);
+    display: grid;
+    place-items: center;
+    padding: 1.5rem;
+  }
+  .sin-foto span {
+    color: var(--tinta);
+    border: 2px solid var(--tinta);
+    padding: .4rem .8rem;
+    font-stretch: 70%;
+    font-weight: 800;
+    font-size: clamp(1.1rem, 2.5vw, 2rem);
+    line-height: 1.05;
+    text-align: center;
+    transform: rotate(-4deg);
+    max-width: 90%;
+    opacity: .85;
+  }
+  .carrusel .sin-foto span { font-size: clamp(2rem, 5vw, 4.2rem); border-width: 4px; padding: .6rem 1.2rem; }
+
+  /* Panel de bienvenida */
+  .bienvenida {
+    background: var(--kraft-claro);
+    padding: 3.5rem clamp(1.5rem, 4vw, 3.5rem);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+  .bienvenida h1 {
+    font-stretch: 75%;
+    font-weight: 800;
+    font-size: clamp(2.2rem, 3.6vw, 3.2rem);
+    line-height: 1.02;
+    margin: 2.2rem 0 .9rem;
+    color: var(--miga);
+    max-width: 14ch;
+  }
+  .bienvenida__texto { margin: 0 0 2rem; color: var(--miga-suave); max-width: 38ch; }
+  .opciones { display: grid; gap: .8rem; max-width: 24rem; }
+  .opciones__crear { margin: .4rem 0 0; font-size: .95rem; }
+
+  .formulario { max-width: 26rem; }
+  .formulario h2 { font-stretch: 80%; font-weight: 800; font-size: 1.8rem; line-height: 1.1; margin: 1.6rem 0 .4rem; }
+  .formulario__intro { margin: 0 0 1.3rem; color: var(--miga-suave); }
+  .formulario__acciones { display: grid; gap: .7rem; margin-top: .4rem; }
+
+  /* ================= PANTALLA DE PRODUCTOS ================= */
+  .barra {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background: var(--papel);
+    border-bottom: 2px solid var(--kraft);
+  }
+  .barra__fila {
+    max-width: 72rem;
+    margin: 0 auto;
+    padding: .8rem 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+  .barra__usuario { display: flex; align-items: center; gap: 1rem; font-weight: 600; }
+  .barra__tipo { font-weight: 400; color: var(--miga-suave); }
+  .categorias-nav {
+    max-width: 72rem;
+    margin: 0 auto;
+    padding: 0 1.5rem .8rem;
+    display: flex;
+    gap: .5rem;
+    overflow-x: auto;
+  }
+  .categorias-nav a {
+    flex: none;
+    text-decoration: none;
+    color: var(--tinta);
+    font-weight: 600;
+    font-size: .95rem;
+    padding: .4rem .9rem;
+    border: 2px solid var(--tinta);
+    border-radius: 999px;
+  }
+  .categorias-nav a:hover { background: var(--tinta); color: #fff; }
+
+  .tienda-cuerpo { max-width: 72rem; margin: 0 auto; padding: 2rem 1.5rem 4rem; }
+  .tienda-titulo {
+    font-stretch: 75%;
+    font-weight: 800;
+    font-size: clamp(2rem, 4vw, 2.8rem);
+    line-height: 1.05;
+    margin: 0 0 .3rem;
+  }
+  .tienda-bajada { margin: 0 0 1rem; color: var(--miga-suave); }
+
+  .categoria { padding-top: 2.2rem; scroll-margin-top: 8rem; }
+  .categoria__titulo {
+    display: flex;
+    align-items: baseline;
+    gap: .8rem;
+    margin: 0 0 1.2rem;
+    padding-bottom: .5rem;
+    border-bottom: 3px dashed var(--kraft);
+    font-stretch: 75%;
+    font-weight: 800;
+    font-size: 1.9rem;
+    color: var(--tinta);
+  }
+  .categoria__cantidad { font-stretch: 100%; font-weight: 500; font-size: .95rem; color: var(--miga-suave); }
+
+  .productos { display: grid; grid-template-columns: repeat(auto-fill, minmax(14rem, 1fr)); gap: 2rem 1.5rem; }
+  .producto { display: flex; flex-direction: column; }
+  .producto__foto { aspect-ratio: 4 / 3; border-radius: 4px; overflow: hidden; background: var(--kraft); }
+  .producto__nombre { margin: .8rem 0 .15rem; font-size: 1.1rem; font-weight: 700; line-height: 1.25; }
+  .producto__descripcion { margin: 0 0 .6rem; color: var(--miga-suave); font-size: .95rem; }
+  .producto__pie { margin-top: auto; display: flex; align-items: baseline; justify-content: space-between; gap: .5rem; }
+  .producto__precio { font-stretch: 85%; font-weight: 800; font-size: 1.5rem; color: var(--tinta); }
+  .producto__stock { font-size: .85rem; font-weight: 600; color: var(--miga-suave); }
+  .producto--sin-stock .producto__foto { filter: grayscale(1); opacity: .6; }
+  .producto--sin-stock .producto__stock { color: var(--error); }
+
+  .creditos { font-size: .8rem; color: var(--miga-suave); max-width: 46rem; }
+  .creditos summary { cursor: pointer; width: fit-content; }
+  .creditos--tienda { margin-top: 4rem; }
+  .creditos--inicio { margin-top: 2.5rem; }
+  .creditos p { margin: .5rem 0; }
+  .creditos ul { margin: 0; padding-left: 1.1rem; columns: 2 16rem; column-gap: 2rem; }
+  .creditos li { margin-bottom: .2rem; break-inside: avoid; }
+  .creditos a { color: var(--tinta); }
+
+  /* ---------- Carrito ---------- */
+  .boton-carrito {
+    font: inherit; font-weight: 700; font-size: .95rem;
+    display: inline-flex; align-items: center; gap: .45rem;
+    padding: .45rem .8rem; border-radius: 4px;
+    border: 2px solid var(--tinta); background: var(--tinta); color: #fff; cursor: pointer;
+  }
+  .boton-carrito:hover { background: var(--tinta-oscura); }
+  .boton-carrito:focus-visible { outline-color: var(--manteca); }
+  .boton-carrito__cantidad {
+    min-width: 1.5rem; padding: 0 .35rem; border-radius: 999px;
+    background: var(--manteca); color: var(--miga); font-size: .85rem; text-align: center;
+  }
+
+  .producto__accion { margin-top: .7rem; }
+  .boton--chico { padding: .5rem .9rem; font-size: .95rem; }
+  .contador {
+    display: inline-flex; align-items: center;
+    border: 2px solid var(--tinta); border-radius: 4px; overflow: hidden;
+  }
+  .contador button {
+    font: inherit; font-weight: 800; font-size: 1.1rem;
+    width: 2.4rem; height: 2.3rem; border: 0; cursor: pointer;
+    background: transparent; color: var(--tinta);
+  }
+  .contador button:hover { background: rgba(29, 59, 143, .1); }
+  .contador button:disabled { color: var(--kraft-oscuro); cursor: not-allowed; background: transparent; }
+  .contador output { min-width: 2.2rem; text-align: center; font-weight: 700; }
+
+  .carrito-fondo { position: fixed; inset: 0; background: rgba(43, 36, 32, .45); z-index: 20; }
+  .carrito {
+    position: fixed; top: 0; right: 0; bottom: 0; z-index: 21;
+    width: min(27rem, 100%);
+    background: var(--papel);
+    border-left: 3px solid var(--kraft);
+    display: flex; flex-direction: column;
+    overflow-y: auto;
+    animation: entrar-carrito .25s ease-out;
+  }
+  @keyframes entrar-carrito { from { transform: translateX(100%); } to { transform: translateX(0); } }
+  .carrito__cabecera {
+    position: sticky; top: 0; background: var(--papel); z-index: 1;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 1rem 1.3rem; border-bottom: 3px dashed var(--kraft);
+  }
+  .carrito__cabecera h2 { margin: 0; font-stretch: 75%; font-weight: 800; font-size: 1.7rem; color: var(--tinta); }
+  .carrito__cerrar { font: inherit; font-size: 1.8rem; line-height: 1; background: none; border: 0; cursor: pointer; color: var(--miga); width: 2.4rem; height: 2.4rem; }
+  .carrito__vista { padding: 1.2rem 1.3rem 2rem; }
+  .carrito__vacio { color: var(--miga-suave); }
+  .carrito__lista { list-style: none; margin: 0 0 1rem; padding: 0; }
+  .item {
+    display: grid; grid-template-columns: 1fr auto; gap: .3rem 1rem;
+    padding: .9rem 0; border-bottom: 1px solid var(--kraft-claro);
+  }
+  .item__nombre { font-weight: 700; }
+  .item__unitario { font-size: .88rem; color: var(--miga-suave); }
+  .item__subtotal { font-weight: 700; text-align: right; align-self: start; }
+  .item__controles { display: flex; align-items: center; gap: .9rem; grid-column: 1 / -1; }
+  .item .contador button { width: 2rem; height: 2rem; font-size: 1rem; }
+  .carrito__nota { font-size: .88rem; color: var(--miga-suave); margin: .3rem 0 1rem; }
+
+  .resumen { margin: 1.2rem 0; }
+  .resumen__fila { display: flex; justify-content: space-between; padding: .25rem 0; }
+  .resumen__fila--total { font-weight: 800; font-size: 1.15rem; border-top: 2px solid var(--kraft); padding-top: .55rem; margin-top: .3rem; }
+  .resumen__fila--total span:last-child { color: var(--tinta); }
+
+  .formulario--carrito { max-width: none; }
+  .entrega { border: 0; padding: 0; margin: 0 0 1.2rem; display: grid; gap: .6rem; }
+  .entrega legend { font-weight: 700; margin-bottom: .6rem; padding: 0; }
+  .entrega__opcion {
+    display: flex; gap: .7rem; align-items: flex-start;
+    border: 2px solid var(--kraft-oscuro); border-radius: 4px; padding: .7rem .8rem; cursor: pointer;
+  }
+  .entrega__opcion:has(input:checked) { border-color: var(--tinta); background: rgba(29, 59, 143, .06); }
+  .entrega__opcion input { margin-top: .25rem; accent-color: var(--tinta); }
+  .entrega__opcion span span { display: block; font-size: .88rem; color: var(--miga-suave); }
+  .pago { background: var(--kraft-claro); padding: .8rem 1rem; border-radius: 4px; margin: 1rem 0; }
+  .pago p { margin: .3rem 0 0; font-size: .9rem; color: var(--miga-suave); }
+  .pago dl { display: grid; grid-template-columns: auto 1fr; gap: .2rem 1rem; margin: .6rem 0 0; }
+  .pago dt { color: var(--miga-suave); }
+  .pago dd { margin: 0; font-weight: 700; }
+  .confirmado__numero { margin: 0; font-weight: 700; color: var(--tinta); }
+  .confirmado__titulo { margin: .2rem 0 .4rem; font-stretch: 75%; font-weight: 800; font-size: 2rem; line-height: 1.05; }
+  .confirmado__entrega { margin: 0; color: var(--miga-suave); }
+
+  /* ---------- Celulares ---------- */
+  @media (max-width: 860px) {
+    .inicio { grid-template-columns: 1fr; }
+    .carrusel { min-height: 55vh; }
+    .diapo__etiqueta { left: 1rem; bottom: 4.6rem; }
+    .carrusel__controles { left: 1rem; bottom: 1.2rem; }
+    .bienvenida { padding: 2.5rem 1.5rem 3rem; }
+    .sello__nombre { font-size: 2.1rem; }
+    .fila-campos { grid-template-columns: 1fr; }
+    .barra__fila { padding: .7rem 1rem; }
+    .barra__usuario { gap: .7rem; font-size: .9rem; text-align: right; }
+    .sello--chico .sello__nombre { font-size: 1.25rem; }
+    .categorias-nav, .tienda-cuerpo { padding-left: 1rem; padding-right: 1rem; }
+    .productos { grid-template-columns: 1fr 1fr; gap: 1.6rem 1rem; }
+    .producto__nombre { font-size: 1rem; }
+    .producto__descripcion { font-size: .88rem; }
+    .producto__pie { flex-direction: column; gap: 0; }
+    .producto__precio { font-size: 1.25rem; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .carrito { animation: none; }
+    .diapo { transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<!-- =====================================================================
+     PANTALLA 1: INICIO (carrusel + ingreso)
+     ===================================================================== -->
+<main id="pantalla-inicio" class="inicio">
+
+  <section class="carrusel" aria-roledescription="carrusel" aria-label="Productos destacados">
+    <div class="carrusel__pista" id="carrusel-pista" aria-live="off"></div>
+    <div class="carrusel__controles">
+      <button class="carrusel__boton" id="carrusel-anterior" aria-label="Foto anterior">&#8249;</button>
+      <div class="carrusel__puntos" id="carrusel-puntos"></div>
+      <button class="carrusel__boton" id="carrusel-siguiente" aria-label="Foto siguiente">&#8250;</button>
+      <button class="carrusel__boton" id="carrusel-pausa" aria-label="Pausar el carrusel">&#10073;&#10073;</button>
+    </div>
+  </section>
+
+  <section class="bienvenida">
+    <div>
+      <div class="sello">
+        <span class="sello__nombre">Palmitos</span>
+        <span class="sello__bajada">panadería de barrio</span>
+      </div>
+    </div>
+
+    <p class="error-general aviso-conexion" id="aviso-conexion" role="alert" hidden></p>
+
+    <!-- Opciones de ingreso -->
+    <div id="panel-opciones">
+      <h1>Pedí el pan de hoy sin salir de casa</h1>
+      <p class="bienvenida__texto">Te lo llevamos a Almagro, Villa Crespo, Palermo, Caballito y Belgrano, o lo pasás a buscar por el local.</p>
+      <div class="opciones">
+        <button class="boton boton--tinta" data-abrir="panel-ingresar">Ingresar con mi cuenta</button>
+        <button class="boton boton--borde" data-abrir="panel-invitado">Entrar sin cuenta</button>
+        <p class="opciones__crear">¿Es tu primera vez? <button class="enlace" data-abrir="panel-crear">Crear una cuenta</button></p>
+      </div>
+      <details class="creditos creditos--inicio">
+        <summary>Créditos de las fotos</summary>
+        <p>Fotos de <a href="https://commons.wikimedia.org" target="_blank" rel="noopener">Wikimedia Commons</a>, usadas según la licencia de cada una.</p>
+        <ul class="lista-creditos"></ul>
+      </details>
+    </div>
+
+    <!-- Ingresar con cuenta  ->  sp_iniciar_sesion(email, contrasena) -->
+    <form id="panel-ingresar" class="formulario" hidden novalidate>
+      <h2>Ingresar con mi cuenta</h2>
+      <p class="formulario__intro">Usá el email y la contraseña con los que te registraste.</p>
+      <p class="error-general" hidden></p>
+      <div class="campo">
+        <label for="ing-email">Email</label>
+        <input id="ing-email" name="email" type="email" autocomplete="email" required>
+        <span class="campo__error" id="ing-email-error"></span>
+      </div>
+      <div class="campo">
+        <label for="ing-contrasena">Contraseña</label>
+        <input id="ing-contrasena" name="contrasena" type="password" autocomplete="current-password" required>
+        <span class="campo__error" id="ing-contrasena-error"></span>
+      </div>
+      <div class="formulario__acciones">
+        <button class="boton boton--tinta" type="submit">Ingresar</button>
+        <button class="boton boton--borde" type="button" data-volver>Volver</button>
+      </div>
+    </form>
+
+    <!-- Crear cuenta  ->  sp_crear_usuario(nombre, apellido, email, contrasena, telefono, domicilio, id_zona) -->
+    <form id="panel-crear" class="formulario" hidden novalidate>
+      <h2>Crear una cuenta</h2>
+      <p class="formulario__intro">Con tu cuenta guardamos tu dirección y podés ver tus pedidos.</p>
+      <p class="error-general" hidden></p>
+      <div class="fila-campos">
+        <div class="campo">
+          <label for="cre-nombre">Nombre</label>
+          <input id="cre-nombre" name="nombre" autocomplete="given-name" required>
+          <span class="campo__error" id="cre-nombre-error"></span>
+        </div>
+        <div class="campo">
+          <label for="cre-apellido">Apellido</label>
+          <input id="cre-apellido" name="apellido" autocomplete="family-name" required>
+          <span class="campo__error" id="cre-apellido-error"></span>
+        </div>
+      </div>
+      <div class="campo">
+        <label for="cre-email">Email</label>
+        <input id="cre-email" name="email" type="email" autocomplete="email" required>
+        <span class="campo__error" id="cre-email-error"></span>
+      </div>
+      <div class="campo">
+        <label for="cre-contrasena">Contraseña</label>
+        <input id="cre-contrasena" name="contrasena" type="password" autocomplete="new-password" required aria-describedby="cre-contrasena-ayuda">
+        <span class="campo__ayuda" id="cre-contrasena-ayuda">Al menos 6 caracteres.</span>
+        <span class="campo__error" id="cre-contrasena-error"></span>
+      </div>
+      <div class="campo">
+        <label for="cre-telefono">Teléfono</label>
+        <input id="cre-telefono" name="telefono" type="tel" autocomplete="tel">
+        <span class="campo__error" id="cre-telefono-error"></span>
+      </div>
+      <div class="campo">
+        <label for="cre-domicilio">Dirección para los envíos</label>
+        <input id="cre-domicilio" name="domicilio" autocomplete="street-address">
+        <span class="campo__error" id="cre-domicilio-error"></span>
+      </div>
+      <div class="campo">
+        <label for="cre-zona">Barrio</label>
+        <select id="cre-zona" name="zona"></select>
+        <span class="campo__error" id="cre-zona-error"></span>
+      </div>
+      <div class="formulario__acciones">
+        <button class="boton boton--tinta" type="submit">Crear cuenta</button>
+        <button class="boton boton--borde" type="button" data-volver>Volver</button>
+      </div>
+    </form>
+
+    <!-- Entrar sin cuenta  ->  sp_entrar_sin_usuario(nombre, telefono) -->
+    <form id="panel-invitado" class="formulario" hidden novalidate>
+      <h2>Entrar sin cuenta</h2>
+      <p class="formulario__intro">Solo necesitamos tu nombre y un teléfono para avisarte cuando tu pedido esté listo.</p>
+      <p class="error-general" hidden></p>
+      <div class="campo">
+        <label for="inv-nombre">Nombre</label>
+        <input id="inv-nombre" name="nombre" autocomplete="given-name" required>
+        <span class="campo__error" id="inv-nombre-error"></span>
+      </div>
+      <div class="campo">
+        <label for="inv-telefono">Teléfono</label>
+        <input id="inv-telefono" name="telefono" type="tel" autocomplete="tel" required>
+        <span class="campo__error" id="inv-telefono-error"></span>
+      </div>
+      <div class="formulario__acciones">
+        <button class="boton boton--tinta" type="submit">Ver productos</button>
+        <button class="boton boton--borde" type="button" data-volver>Volver</button>
+      </div>
+    </form>
+  </section>
+</main>
+
+<!-- =====================================================================
+     PANTALLA 2: PRODUCTOS POR CATEGORÍA  ->  sp_listar_productos()
+     ===================================================================== -->
+<div id="pantalla-tienda" hidden>
+  <header class="barra">
+    <div class="barra__fila">
+      <div class="sello sello--chico"><span class="sello__nombre">Palmitos</span></div>
+      <div class="barra__usuario">
+        <span id="saludo"></span>
+        <button class="boton-carrito" id="boton-carrito" aria-haspopup="dialog">
+          Carrito <span class="boton-carrito__cantidad" id="carrito-cantidad">0</span>
+        </button>
+        <button class="enlace" id="boton-salir">Salir</button>
+      </div>
+    </div>
+    <nav class="categorias-nav" id="categorias-nav" aria-label="Categorías"></nav>
+  </header>
+
+  <main class="tienda-cuerpo">
+    <h1 class="tienda-titulo">Nuestros productos</h1>
+    <p class="tienda-bajada">Todo se hace en el día. Los precios están en pesos.</p>
+    <div id="lista-categorias"></div>
+
+    <details class="creditos creditos--tienda">
+      <summary>Créditos de las fotos</summary>
+      <p>Fotos de <a href="https://commons.wikimedia.org" target="_blank" rel="noopener">Wikimedia Commons</a>, usadas según la licencia de cada una.</p>
+      <ul class="lista-creditos"></ul>
+    </details>
+  </main>
+
+  <!-- =================== CARRITO =================== -->
+  <div class="carrito-fondo" id="carrito-fondo" hidden></div>
+  <aside class="carrito" id="carrito" role="dialog" aria-modal="true" aria-labelledby="carrito-titulo" hidden>
+    <div class="carrito__cabecera">
+      <h2 id="carrito-titulo">Tu pedido</h2>
+      <button class="carrito__cerrar" id="carrito-cerrar" aria-label="Cerrar el carrito">&times;</button>
+    </div>
+
+    <!-- Paso 1: productos elegidos (se guardan en la página, todavía no en la base) -->
+    <div class="carrito__vista" id="vista-carrito">
+      <p class="carrito__vacio" id="carrito-vacio">Todavía no agregaste productos. Tocá "Agregar" en los que quieras llevar.</p>
+      <ul class="carrito__lista" id="carrito-lista"></ul>
+      <div class="carrito__pie" id="carrito-pie">
+        <div class="resumen__fila resumen__fila--total"><span>Subtotal</span><span id="carrito-subtotal"></span></div>
+        <p class="carrito__nota">El envío se calcula en el paso siguiente.</p>
+        <button class="boton boton--tinta" id="ir-a-finalizar">Finalizar compra</button>
+      </div>
+    </div>
+
+    <!-- Paso 2: entrega y pago  ->  api/finalizar_compra.php -->
+    <form class="carrito__vista formulario formulario--carrito" id="vista-finalizar" hidden novalidate>
+      <p class="error-general" hidden></p>
+      <fieldset class="entrega">
+        <legend>¿Cómo lo recibís?</legend>
+        <label class="entrega__opcion">
+          <input type="radio" name="tipo_entrega" value="envio" checked>
+          <span><strong>Envío a domicilio</strong><span>El costo depende del barrio</span></span>
+        </label>
+        <label class="entrega__opcion">
+          <input type="radio" name="tipo_entrega" value="retiro">
+          <span><strong>Retiro en el local</strong><span>Sin costo de envío</span></span>
+        </label>
+      </fieldset>
+      <div id="campos-envio">
+        <div class="campo">
+          <label for="fin-direccion">Dirección</label>
+          <input id="fin-direccion" name="direccion" autocomplete="street-address">
+          <span class="campo__error" id="fin-direccion-error"></span>
+        </div>
+        <div class="campo">
+          <label for="fin-zona">Barrio</label>
+          <select id="fin-zona" name="zona"></select>
+          <span class="campo__error" id="fin-zona-error"></span>
+        </div>
+      </div>
+      <div class="campo">
+        <label for="fin-observaciones">Indicaciones (opcional)</label>
+        <input id="fin-observaciones" name="observaciones" maxlength="200" placeholder="Por ejemplo: tocar timbre 4B">
+        <span class="campo__error" id="fin-observaciones-error"></span>
+      </div>
+      <div class="pago">
+        <strong>Pago por transferencia</strong>
+        <p>Al confirmar te mostramos los datos para transferir. Empezamos a preparar tu pedido cuando recibimos el pago.</p>
+      </div>
+      <div class="resumen">
+        <div class="resumen__fila"><span>Productos</span><span id="fin-subtotal"></span></div>
+        <div class="resumen__fila"><span>Envío</span><span id="fin-envio"></span></div>
+        <div class="resumen__fila resumen__fila--total"><span>Total</span><span id="fin-total"></span></div>
+      </div>
+      <div class="formulario__acciones">
+        <button class="boton boton--tinta" type="submit">Confirmar pedido</button>
+        <button class="boton boton--borde" type="button" id="volver-al-carrito">Volver al carrito</button>
+      </div>
+    </form>
+
+    <!-- Paso 3: pedido guardado en la base -->
+    <div class="carrito__vista" id="vista-confirmado" hidden>
+      <p class="confirmado__numero" id="conf-numero"></p>
+      <h3 class="confirmado__titulo">Recibimos tu pedido</h3>
+      <p class="confirmado__entrega" id="conf-entrega"></p>
+      <div class="resumen">
+        <div class="resumen__fila"><span>Productos</span><span id="conf-subtotal"></span></div>
+        <div class="resumen__fila"><span>Envío</span><span id="conf-envio"></span></div>
+        <div class="resumen__fila resumen__fila--total"><span>Total a transferir</span><span id="conf-total"></span></div>
+      </div>
+      <!-- Datos de transferencia de ejemplo: reemplazalos por los reales -->
+      <div class="pago pago--datos">
+        <strong>Datos para la transferencia</strong>
+        <dl>
+          <dt>Alias</dt><dd>palmitos.panaderia</dd>
+          <dt>Titular</dt><dd>Panadería Palmitos</dd>
+          <dt>Referencia</dt><dd id="conf-referencia"></dd>
+        </dl>
+        <p>Poné el número de pedido como referencia. Te avisamos cuando confirmemos el pago.</p>
+      </div>
+      <button class="boton boton--tinta" id="seguir-comprando">Seguir comprando</button>
+    </div>
+  </aside>
+</div>
+
+<script>
+/* =======================================================================
+   CONEXIÓN CON LA BASE DE DATOS
+   La página le pide los datos a los archivos PHP de la carpeta api/,
+   y cada uno llama a su stored procedure en MySQL.
+   ======================================================================= */
+async function llamarApi(archivo, datos) {
+  const opciones = datos === undefined
+    ? { method: "GET" }
+    : { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(datos) };
+  let respuesta;
+  try {
+    respuesta = await fetch("api/" + archivo, opciones);
+  } catch (e) {
+    throw new Error("No hay conexión con el servidor. Abrí la página desde http://localhost con Apache iniciado.");
+  }
+  let json;
+  try {
+    json = await respuesta.json();
+  } catch (e) {
+    throw new Error("El servidor respondió algo inesperado. Revisá que PHP esté funcionando.");
+  }
+  if (!json.ok) throw new Error(json.error || "Algo salió mal. Probá de nuevo.");
+  return json;
+}
+
+/* =======================================================================
+   FOTOS
+   La base de datos no guarda fotos: acá se dice qué foto de Wikimedia Commons
+   corresponde a cada producto (según su id_producto), con su autor y licencia.
+   Si ponés una foto propia en img/ con el nombre del producto, se usa esa primero.
+   ======================================================================= */
+const fotos = {
+  1:  { archivo: "Pan_Felipe.jpg", autor: "Diosverde", licencia: "" },
+  2:  { archivo: "Slices_of_bread.jpg", autor: "National Cancer Institute", licencia: "Dominio público" },
+  3:  { archivo: "Pizza_argentina_de_Cancha_(salsa_de_tomate_con_ajo_y_sin_queso).jpg", autor: "Roblespepe", licencia: "" },
+  4:  { archivo: "Medialunas_argentinas.jpg", autor: "David", licencia: "CC BY 2.0" },
+  5:  { archivo: "Facturas_de_Grasa.jpg", autor: "", licencia: "" },
+  7:  { archivo: "Torta_alla_ricotta.jpg", autor: "OppidumNissenae", licencia: "" },
+  8:  { archivo: "Lemon_bundt_cake_(2),_January_2010.jpg", autor: "Stacy", licencia: "CC BY 2.0" },
+  9:  { archivo: "Alfajor_de_maicena_and_a_latte.jpg", autor: "Anina2007", licencia: "" },
+  10: { archivo: "Glass_of_Cola.jpg", autor: "Cocktailmarler", licencia: "" },
+  11: { archivo: "Glass_of_cold_mineral_water.jpg", autor: "Arria Belli", licencia: "CC BY-SA 2.0" },
+  12: { archivo: "Chocolate_milk.JPG", autor: "stevepb", licencia: "" },
+  13: { archivo: "DulceDeLeche.jpg", autor: "audinou", licencia: "CC BY 2.0" }
+};
+
+// Productos que aparecen en el carrusel de la pantalla de inicio (id_producto)
+const destacados = [4, 9, 8, 7, 1];
+
+// Acá se guardan los productos y barrios que llegan de la base, y quién entró
+let productos = [];
+let zonas = [];
+let clienteActual = null;
+
+/* =======================================================================
+   UTILIDADES
+   ======================================================================= */
+const pesos = new Intl.NumberFormat("es-AR", { style: "currency", currency: "ARS", maximumFractionDigits: 0 });
+
+// "Medialuna de manteca" -> "medialuna-de-manteca"  (nombre del archivo de la foto)
+function nombreArchivo(texto) {
+  return texto.normalize("NFD").replace(/[̀-ͯ]/g, "")
+    .toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+}
+
+function urlCommons(archivo, ancho) {
+  return "https://commons.wikimedia.org/wiki/Special:FilePath/" + encodeURIComponent(archivo) + "?width=" + ancho;
+}
+function paginaCommons(archivo) {
+  return "https://commons.wikimedia.org/wiki/File:" + encodeURIComponent(archivo);
+}
+
+// Crea la foto del producto. Prueba en orden: foto propia en img/, foto de Wikimedia Commons
+// y, si ninguna carga, muestra el nombre del producto como un sello.
+function crearFoto(producto, ancho = 960) {
+  const fuentes = ["img/" + nombreArchivo(producto.nombre) + ".jpg"];
+  const foto = fotos[producto.id];
+  if (foto) fuentes.push(urlCommons(foto.archivo, ancho));
+
+  const img = document.createElement("img");
+  img.className = "foto";
+  img.alt = producto.nombre;
+  img.loading = "lazy";
+  let intento = 0;
+  img.src = fuentes[intento];
+  img.addEventListener("error", () => {
+    intento++;
+    if (intento < fuentes.length) {
+      img.src = fuentes[intento];
+      return;
+    }
+    const reemplazo = document.createElement("div");
+    reemplazo.className = "sin-foto";
+    reemplazo.setAttribute("role", "img");
+    reemplazo.setAttribute("aria-label", producto.nombre);
+    const texto = document.createElement("span");
+    texto.textContent = producto.nombre;
+    reemplazo.appendChild(texto);
+    img.replaceWith(reemplazo);
+  });
+  return img;
+}
+
+function textoCredito(foto) {
+  const autor = foto.autor || "autor sin identificar";
+  return foto.licencia ? `${autor} (${foto.licencia})` : autor;
+}
+
+/* =======================================================================
+   CARRUSEL
+   ======================================================================= */
+const pista = document.getElementById("carrusel-pista");
+const puntos = document.getElementById("carrusel-puntos");
+const botonPausa = document.getElementById("carrusel-pausa");
+const sinAnimaciones = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+let actual = 0;
+let temporizador = null;
+let enPausa = sinAnimaciones;
+
+function armarCarrusel() {
+  pista.innerHTML = "";
+  puntos.innerHTML = "";
+  actual = 0;
+  const elegidos = destacados.map(id => productos.find(p => p.id === id)).filter(Boolean);
+
+  elegidos.forEach((p, i) => {
+    const diapo = document.createElement("div");
+    diapo.className = "diapo" + (i === 0 ? " activa" : "");
+    diapo.setAttribute("role", "group");
+    diapo.setAttribute("aria-roledescription", "diapositiva");
+    diapo.setAttribute("aria-label", `${i + 1} de ${elegidos.length}`);
+    diapo.appendChild(crearFoto(p, 1280));
+
+    const etiqueta = document.createElement("div");
+    etiqueta.className = "diapo__etiqueta";
+    etiqueta.innerHTML = `<p class="diapo__nombre"></p><p class="diapo__precio"></p>`;
+    etiqueta.querySelector(".diapo__nombre").textContent = p.nombre;
+    etiqueta.querySelector(".diapo__precio").textContent = `${p.descripcion} · ${pesos.format(p.precio)}`;
+    diapo.appendChild(etiqueta);
+    pista.appendChild(diapo);
+
+    const punto = document.createElement("button");
+    punto.className = "punto";
+    punto.setAttribute("aria-label", `Ver ${p.nombre}`);
+    if (i === 0) punto.setAttribute("aria-current", "true");
+    punto.addEventListener("click", () => { irA(i); reiniciar(); });
+    puntos.appendChild(punto);
+  });
+  reiniciar();
+}
+
+function irA(i) {
+  const diapos = pista.querySelectorAll(".diapo");
+  const listaPuntos = puntos.querySelectorAll(".punto");
+  if (diapos.length === 0) return;
+  diapos[actual].classList.remove("activa");
+  listaPuntos[actual].removeAttribute("aria-current");
+  actual = (i + diapos.length) % diapos.length;
+  diapos[actual].classList.add("activa");
+  listaPuntos[actual].setAttribute("aria-current", "true");
+}
+
+function reiniciar() {
+  clearInterval(temporizador);
+  if (!enPausa && pista.children.length > 1) temporizador = setInterval(() => irA(actual + 1), 5000);
+}
+
+function actualizarBotonPausa() {
+  botonPausa.innerHTML = enPausa ? "&#9654;" : "&#10073;&#10073;";
+  botonPausa.setAttribute("aria-label", enPausa ? "Reanudar el carrusel" : "Pausar el carrusel");
+}
+
+document.getElementById("carrusel-anterior").addEventListener("click", () => { irA(actual - 1); reiniciar(); });
+document.getElementById("carrusel-siguiente").addEventListener("click", () => { irA(actual + 1); reiniciar(); });
+botonPausa.addEventListener("click", () => { enPausa = !enPausa; actualizarBotonPausa(); reiniciar(); });
+actualizarBotonPausa();
+
+/* =======================================================================
+   PANELES DE INGRESO
+   ======================================================================= */
+const paneles = ["panel-opciones", "panel-ingresar", "panel-crear", "panel-invitado"];
+
+function mostrarPanel(id) {
+  paneles.forEach(p => document.getElementById(p).hidden = (p !== id));
+  const primerCampo = document.querySelector(`#${id} input`);
+  if (primerCampo) primerCampo.focus();
+}
+
+document.querySelectorAll("[data-abrir]").forEach(b =>
+  b.addEventListener("click", () => mostrarPanel(b.dataset.abrir)));
+document.querySelectorAll("[data-volver]").forEach(b =>
+  b.addEventListener("click", () => mostrarPanel("panel-opciones")));
+
+function marcarError(input, mensaje) {
+  const error = document.getElementById(input.id + "-error");
+  if (!error) return !mensaje;
+  error.textContent = mensaje || "";
+  if (mensaje) {
+    input.setAttribute("aria-invalid", "true");
+    input.setAttribute("aria-errormessage", error.id);
+  } else {
+    input.removeAttribute("aria-invalid");
+  }
+  return !mensaje;
+}
+
+function errorGeneral(form, mensaje) {
+  const caja = form.querySelector(".error-general");
+  caja.textContent = mensaje || "";
+  caja.hidden = !mensaje;
+}
+
+document.querySelectorAll(".formulario input, .formulario select").forEach(campo =>
+  campo.addEventListener("input", () => {
+    marcarError(campo, "");
+    errorGeneral(campo.form, "");
+  }));
+
+// Mientras espera la respuesta, el botón queda desactivado
+async function enviando(form, accion) {
+  const boton = form.querySelector('button[type="submit"]');
+  const texto = boton.textContent;
+  boton.disabled = true;
+  boton.textContent = "Un momento…";
+  try {
+    await accion();
+  } catch (e) {
+    errorGeneral(form, e.message);
+  } finally {
+    boton.disabled = false;
+    boton.textContent = texto;
+  }
+}
+
+const emailValido = email => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+
+// --- Ingresar con mi cuenta  ->  api/iniciar_sesion.php  ->  sp_iniciar_sesion ---
+document.getElementById("panel-ingresar").addEventListener("submit", e => {
+  e.preventDefault();
+  const form = e.target;
+  const email = form.email.value.trim().toLowerCase();
+  const contrasena = form.contrasena.value;
+  let ok = true;
+  ok = marcarError(form.email, email ? (emailValido(email) ? "" : "Escribí un email válido, por ejemplo nombre@mail.com") : "Escribí tu email") && ok;
+  ok = marcarError(form.contrasena, contrasena ? "" : "Escribí tu contraseña") && ok;
+  if (!ok) return;
+
+  enviando(form, async () => {
+    const r = await llamarApi("iniciar_sesion.php", { email, contrasena });
+    entrar(r.cliente);
+  });
+});
+
+// --- Crear cuenta  ->  api/crear_usuario.php  ->  sp_crear_usuario ---
+document.getElementById("panel-crear").addEventListener("submit", e => {
+  e.preventDefault();
+  const form = e.target;
+  const datos = {
+    nombre: form.nombre.value.trim(),
+    apellido: form.apellido.value.trim(),
+    email: form.email.value.trim().toLowerCase(),
+    contrasena: form.contrasena.value,
+    telefono: form.telefono.value.trim(),
+    domicilio: form.domicilio.value.trim(),
+    zona: form.zona.value
+  };
+  let ok = true;
+  ok = marcarError(form.nombre, datos.nombre ? "" : "Escribí tu nombre") && ok;
+  ok = marcarError(form.apellido, datos.apellido ? "" : "Escribí tu apellido") && ok;
+  ok = marcarError(form.email, datos.email ? (emailValido(datos.email) ? "" : "Escribí un email válido, por ejemplo nombre@mail.com") : "Escribí tu email") && ok;
+  ok = marcarError(form.contrasena, datos.contrasena.length >= 6 ? "" : "La contraseña tiene que tener al menos 6 caracteres") && ok;
+  if (!ok) return;
+
+  enviando(form, async () => {
+    const r = await llamarApi("crear_usuario.php", datos);
+    entrar(r.cliente);
+  });
+});
+
+// --- Entrar sin cuenta  ->  api/entrar_sin_usuario.php  ->  sp_entrar_sin_usuario ---
+document.getElementById("panel-invitado").addEventListener("submit", e => {
+  e.preventDefault();
+  const form = e.target;
+  const nombre = form.nombre.value.trim();
+  const telefono = form.telefono.value.trim();
+  let ok = true;
+  ok = marcarError(form.nombre, nombre ? "" : "Escribí tu nombre") && ok;
+  ok = marcarError(form.telefono, /^[0-9\s\-+()]{8,}$/.test(telefono) ? "" : "Escribí un teléfono, por ejemplo 11-6111-2233") && ok;
+  if (!ok) return;
+
+  enviando(form, async () => {
+    const r = await llamarApi("entrar_sin_usuario.php", { nombre, telefono });
+    entrar(r.cliente);
+  });
+});
+
+/* =======================================================================
+   PANTALLA DE PRODUCTOS  ->  api/productos.php  ->  sp_listar_productos
+   ======================================================================= */
+function entrar(cliente) {
+  clearInterval(temporizador);
+  clienteActual = cliente;
+  vaciarCarrito();
+  const saludo = document.getElementById("saludo");
+  saludo.textContent = `Hola, ${cliente.nombre}`;
+  if (cliente.tipo === "invitado") {
+    const tipo = document.createElement("span");
+    tipo.className = "barra__tipo";
+    tipo.textContent = " (sin cuenta)";
+    saludo.appendChild(tipo);
+  }
+  document.getElementById("pantalla-inicio").hidden = true;
+  document.getElementById("pantalla-tienda").hidden = false;
+  mostrarProductos();
+  window.scrollTo(0, 0);
+  document.querySelector(".tienda-titulo").focus({ preventScroll: true });
+}
+
+function mostrarProductos() {
+  const nav = document.getElementById("categorias-nav");
+  const lista = document.getElementById("lista-categorias");
+  nav.innerHTML = "";
+  lista.innerHTML = "";
+
+  // Agrupa los productos por categoría, en el orden en que llegan de la base
+  const categorias = [];
+  productos.forEach(p => {
+    let cat = categorias.find(c => c.id === p.id_categoria);
+    if (!cat) {
+      cat = { id: p.id_categoria, nombre: p.categoria, productos: [] };
+      categorias.push(cat);
+    }
+    cat.productos.push(p);
+  });
+
+  categorias.forEach(cat => {
+    const idSeccion = "cat-" + nombreArchivo(cat.nombre);
+
+    const enlace = document.createElement("a");
+    enlace.href = "#" + idSeccion;
+    enlace.textContent = cat.nombre;
+    nav.appendChild(enlace);
+
+    const seccion = document.createElement("section");
+    seccion.className = "categoria";
+    seccion.id = idSeccion;
+    seccion.setAttribute("aria-labelledby", idSeccion + "-titulo");
+
+    const titulo = document.createElement("h2");
+    titulo.className = "categoria__titulo";
+    titulo.id = idSeccion + "-titulo";
+    titulo.textContent = cat.nombre;
+    const cantidad = document.createElement("span");
+    cantidad.className = "categoria__cantidad";
+    cantidad.textContent = cat.productos.length === 1 ? "1 producto" : `${cat.productos.length} productos`;
+    titulo.appendChild(cantidad);
+    seccion.appendChild(titulo);
+
+    const grilla = document.createElement("div");
+    grilla.className = "productos";
+    cat.productos.forEach(p => {
+      const item = document.createElement("article");
+      item.className = "producto" + (p.disponible ? "" : " producto--sin-stock");
+
+      const foto = document.createElement("div");
+      foto.className = "producto__foto";
+      foto.appendChild(crearFoto(p));
+      item.appendChild(foto);
+
+      const nombre = document.createElement("h3");
+      nombre.className = "producto__nombre";
+      nombre.textContent = p.nombre;
+      item.appendChild(nombre);
+
+      const descripcion = document.createElement("p");
+      descripcion.className = "producto__descripcion";
+      descripcion.textContent = p.descripcion;
+      item.appendChild(descripcion);
+
+      const pie = document.createElement("div");
+      pie.className = "producto__pie";
+      pie.innerHTML = `<span class="producto__precio"></span><span class="producto__stock"></span>`;
+      pie.querySelector(".producto__precio").textContent = pesos.format(p.precio);
+      pie.querySelector(".producto__stock").textContent = p.disponible ? "Disponible" : "Sin stock";
+      item.appendChild(pie);
+
+      const accion = document.createElement("div");
+      accion.className = "producto__accion";
+      accion.dataset.id = p.id;
+      item.appendChild(accion);
+      dibujarAccion(accion, p);
+
+      grilla.appendChild(item);
+    });
+    seccion.appendChild(grilla);
+    lista.appendChild(seccion);
+  });
+}
+
+function mostrarCreditos() {
+  document.querySelectorAll(".lista-creditos").forEach(lista => {
+    lista.innerHTML = "";
+    productos.filter(p => fotos[p.id]).forEach(p => {
+      const foto = fotos[p.id];
+      const li = document.createElement("li");
+      const a = document.createElement("a");
+      a.href = paginaCommons(foto.archivo);
+      a.target = "_blank";
+      a.rel = "noopener";
+      a.textContent = p.nombre;
+      li.appendChild(a);
+      li.append(": " + textoCredito(foto) + (foto.licencia ? "" : ", licencia libre"));
+      lista.appendChild(li);
+    });
+  });
+}
+
+document.querySelector(".tienda-titulo").setAttribute("tabindex", "-1");
+
+// --- Salir  ->  api/cerrar_sesion.php ---
+document.getElementById("boton-salir").addEventListener("click", async () => {
+  try { await llamarApi("cerrar_sesion.php", {}); } catch (e) { /* aunque falle, se vuelve al inicio */ }
+  clienteActual = null;
+  vaciarCarrito();
+  cerrarCarrito();
+  document.getElementById("pantalla-tienda").hidden = true;
+  document.getElementById("pantalla-inicio").hidden = false;
+  document.querySelectorAll(".formulario").forEach(f => {
+    f.reset();
+    errorGeneral(f, "");
+    f.querySelectorAll("input, select").forEach(c => marcarError(c, ""));
+  });
+  mostrarPanel("panel-opciones");
+  reiniciar();
+});
+
+/* =======================================================================
+   CARRITO
+   Mientras el cliente elige, el carrito se guarda en la página (id_producto -> cantidad).
+   Recién al tocar "Confirmar pedido" se crea el pedido en la base.
+   ======================================================================= */
+const carrito = new Map();
+const MAXIMO_POR_PRODUCTO = 99;
+
+function buscarProducto(id) {
+  return productos.find(p => p.id === id);
+}
+
+function subtotalCarrito() {
+  let total = 0;
+  carrito.forEach((cantidad, id) => {
+    const p = buscarProducto(id);
+    if (p) total += p.precio * cantidad;
+  });
+  return total;
+}
+
+function cambiarCantidad(id, diferencia) {
+  const nueva = Math.min((carrito.get(id) || 0) + diferencia, MAXIMO_POR_PRODUCTO);
+  if (nueva <= 0) carrito.delete(id);
+  else carrito.set(id, nueva);
+  actualizarCarrito();
+}
+
+function vaciarCarrito() {
+  carrito.clear();
+  actualizarCarrito();
+}
+
+// Crea un contador "−  2  +" para un producto
+function crearContador(p, etiqueta) {
+  const cantidad = carrito.get(p.id) || 0;
+  const caja = document.createElement("div");
+  caja.className = "contador";
+  caja.setAttribute("role", "group");
+  caja.setAttribute("aria-label", etiqueta);
+  const menos = document.createElement("button");
+  menos.type = "button";
+  menos.textContent = "−";
+  menos.setAttribute("aria-label", `Quitar una unidad de ${p.nombre}`);
+  menos.addEventListener("click", () => cambiarCantidad(p.id, -1));
+  const numero = document.createElement("output");
+  numero.textContent = cantidad;
+  const mas = document.createElement("button");
+  mas.type = "button";
+  mas.textContent = "+";
+  mas.setAttribute("aria-label", `Agregar una unidad de ${p.nombre}`);
+  mas.disabled = cantidad >= MAXIMO_POR_PRODUCTO;
+  mas.addEventListener("click", () => cambiarCantidad(p.id, 1));
+  caja.append(menos, numero, mas);
+  return caja;
+}
+
+// Botón "Agregar" o contador, debajo de cada producto
+function dibujarAccion(contenedor, p) {
+  contenedor.innerHTML = "";
+  if (!p.disponible) return;
+  if (carrito.has(p.id)) {
+    contenedor.appendChild(crearContador(p, `Cantidad de ${p.nombre} en el carrito`));
+  } else {
+    const boton = document.createElement("button");
+    boton.type = "button";
+    boton.className = "boton boton--borde boton--chico";
+    boton.style.width = "auto";
+    boton.textContent = "Agregar";
+    boton.setAttribute("aria-label", `Agregar ${p.nombre} al carrito`);
+    boton.addEventListener("click", () => {
+      cambiarCantidad(p.id, 1);
+      // el foco pasa al contador nuevo, para seguir sumando con el teclado
+      const mas = contenedor.querySelector(".contador button:last-child");
+      if (mas) mas.focus();
+    });
+    contenedor.appendChild(boton);
+  }
+}
+
+function actualizarCarrito() {
+  // Número en el botón de la barra
+  let unidades = 0;
+  carrito.forEach(c => unidades += c);
+  document.getElementById("carrito-cantidad").textContent = unidades;
+  document.getElementById("boton-carrito").setAttribute("aria-label", `Carrito, ${unidades} ${unidades === 1 ? "producto" : "productos"}`);
+
+  // Botones de cada producto (conservando el foco si estaba en un contador)
+  const enfocado = document.activeElement;
+  const idEnfocado = enfocado && enfocado.closest(".producto__accion") ? Number(enfocado.closest(".producto__accion").dataset.id) : null;
+  const eraMas = enfocado && enfocado.textContent === "+";
+  document.querySelectorAll(".producto__accion").forEach(caja => {
+    const p = buscarProducto(Number(caja.dataset.id));
+    if (p) dibujarAccion(caja, p);
+  });
+  if (idEnfocado !== null) {
+    const caja = document.querySelector(`.producto__accion[data-id="${idEnfocado}"]`);
+    const destino = caja && (caja.querySelector(eraMas ? ".contador button:last-child" : ".contador button") || caja.querySelector("button"));
+    if (destino) destino.focus();
+  }
+
+  // Lista dentro del panel
+  const lista = document.getElementById("carrito-lista");
+  lista.innerHTML = "";
+  carrito.forEach((cantidad, id) => {
+    const p = buscarProducto(id);
+    if (!p) return;
+    const li = document.createElement("li");
+    li.className = "item";
+    li.innerHTML = `<div><div class="item__nombre"></div><div class="item__unitario"></div></div><div class="item__subtotal"></div><div class="item__controles"></div>`;
+    li.querySelector(".item__nombre").textContent = p.nombre;
+    li.querySelector(".item__unitario").textContent = `${pesos.format(p.precio)} c/u`;
+    li.querySelector(".item__subtotal").textContent = pesos.format(p.precio * cantidad);
+    const controles = li.querySelector(".item__controles");
+    controles.appendChild(crearContador(p, `Cantidad de ${p.nombre}`));
+    const quitar = document.createElement("button");
+    quitar.type = "button";
+    quitar.className = "enlace";
+    quitar.textContent = "Quitar";
+    quitar.setAttribute("aria-label", `Quitar ${p.nombre} del carrito`);
+    quitar.addEventListener("click", () => { carrito.delete(id); actualizarCarrito(); });
+    controles.appendChild(quitar);
+    lista.appendChild(li);
+  });
+  const vacio = carrito.size === 0;
+  document.getElementById("carrito-vacio").hidden = !vacio;
+  document.getElementById("carrito-pie").hidden = vacio;
+  document.getElementById("carrito-subtotal").textContent = pesos.format(subtotalCarrito());
+
+  // Si estaba en "Finalizar compra" y vació el carrito, vuelve al paso 1
+  if (vacio && !document.getElementById("vista-finalizar").hidden) mostrarVista("vista-carrito");
+  actualizarResumen();
+}
+
+/* ---------- Abrir y cerrar el panel ---------- */
+const panelCarrito = document.getElementById("carrito");
+const fondoCarrito = document.getElementById("carrito-fondo");
+
+function mostrarVista(id) {
+  ["vista-carrito", "vista-finalizar", "vista-confirmado"].forEach(v =>
+    document.getElementById(v).hidden = (v !== id));
+  const titulos = { "vista-carrito": "Tu pedido", "vista-finalizar": "Entrega y pago", "vista-confirmado": "Pedido confirmado" };
+  document.getElementById("carrito-titulo").textContent = titulos[id];
+}
+
+function abrirCarrito() {
+  if (document.getElementById("vista-confirmado").hidden === false) mostrarVista("vista-carrito");
+  panelCarrito.hidden = false;
+  fondoCarrito.hidden = false;
+  document.body.style.overflow = "hidden";
+  document.getElementById("carrito-cerrar").focus();
+}
+
+function cerrarCarrito() {
+  panelCarrito.hidden = true;
+  fondoCarrito.hidden = true;
+  document.body.style.overflow = "";
+  if (!document.getElementById("pantalla-tienda").hidden) document.getElementById("boton-carrito").focus();
+}
+
+document.getElementById("boton-carrito").addEventListener("click", abrirCarrito);
+document.getElementById("carrito-cerrar").addEventListener("click", cerrarCarrito);
+fondoCarrito.addEventListener("click", cerrarCarrito);
+document.addEventListener("keydown", e => {
+  if (e.key === "Escape" && !panelCarrito.hidden) cerrarCarrito();
+});
+
+/* ---------- Paso 2: entrega y pago ---------- */
+const formFinalizar = document.getElementById("vista-finalizar");
+
+function tipoEntrega() {
+  return formFinalizar.querySelector('input[name="tipo_entrega"]:checked').value;
+}
+
+// Costo de envío según lo elegido (null = falta elegir el barrio)
+function costoEnvio() {
+  if (tipoEntrega() === "retiro") return 0;
+  const zona = zonas.find(z => String(z.id) === formFinalizar.zona.value);
+  return zona ? zona.costo : null;
+}
+
+function actualizarResumen() {
+  const subtotal = subtotalCarrito();
+  const envio = costoEnvio();
+  document.getElementById("fin-subtotal").textContent = pesos.format(subtotal);
+  document.getElementById("fin-envio").textContent =
+    envio === null ? "Elegí tu barrio" : (envio === 0 ? "Sin costo" : pesos.format(envio));
+  document.getElementById("fin-total").textContent = pesos.format(subtotal + (envio || 0));
+  document.getElementById("campos-envio").hidden = tipoEntrega() !== "envio";
+}
+
+document.getElementById("ir-a-finalizar").addEventListener("click", () => {
+  if (carrito.size === 0) return;
+  // Para los clientes con cuenta, se completa su dirección guardada
+  if (clienteActual && !formFinalizar.direccion.value && clienteActual.domicilio) {
+    formFinalizar.direccion.value = clienteActual.domicilio;
+  }
+  if (clienteActual && !formFinalizar.zona.value && clienteActual.id_zona) {
+    formFinalizar.zona.value = String(clienteActual.id_zona);
+  }
+  errorGeneral(formFinalizar, "");
+  mostrarVista("vista-finalizar");
+  actualizarResumen();
+  formFinalizar.querySelector('input[name="tipo_entrega"]:checked').focus();
+});
+
+document.getElementById("volver-al-carrito").addEventListener("click", () => mostrarVista("vista-carrito"));
+formFinalizar.querySelectorAll('input[name="tipo_entrega"]').forEach(r => r.addEventListener("change", actualizarResumen));
+formFinalizar.zona.addEventListener("change", actualizarResumen);
+
+// --- Confirmar pedido  ->  api/finalizar_compra.php  ->  sp_crear_pedido + sp_agregar_producto ---
+formFinalizar.addEventListener("submit", e => {
+  e.preventDefault();
+  const envio = tipoEntrega() === "envio";
+  const direccion = formFinalizar.direccion.value.trim();
+  const zona = formFinalizar.zona.value;
+  let ok = true;
+  if (envio) {
+    ok = marcarError(formFinalizar.direccion, direccion ? "" : "Escribí la dirección de entrega") && ok;
+    ok = marcarError(formFinalizar.zona, zona ? "" : "Elegí el barrio para calcular el envío") && ok;
+  }
+  if (!ok) return;
+
+  const items = [];
+  carrito.forEach((cantidad, id) => items.push({ id, cantidad }));
+
+  enviando(formFinalizar, async () => {
+    const r = await llamarApi("finalizar_compra.php", {
+      items,
+      tipo_entrega: envio ? "envio" : "retiro",
+      direccion: envio ? direccion : "",
+      zona: envio ? zona : "",
+      observaciones: formFinalizar.observaciones.value.trim()
+    });
+    mostrarConfirmacion(r.pedido);
+    vaciarCarrito();
+    formFinalizar.observaciones.value = "";
+    // Se vuelven a pedir los productos, por si alguno se quedó sin stock
+    try {
+      productos = (await llamarApi("productos.php")).productos;
+      mostrarProductos();
+    } catch (err) { /* si falla, se sigue mostrando la lista anterior */ }
+  });
+});
+
+/* ---------- Paso 3: confirmación (con los números que calculó la base) ---------- */
+function mostrarConfirmacion(pedido) {
+  document.getElementById("conf-numero").textContent = `Pedido N.° ${pedido.id}`;
+  document.getElementById("conf-entrega").textContent = pedido.tipo_entrega === "envio"
+    ? `Lo enviamos a ${pedido.direccion} (${pedido.zona}).`
+    : "Lo retirás por el local.";
+  document.getElementById("conf-subtotal").textContent = pesos.format(pedido.subtotal);
+  document.getElementById("conf-envio").textContent = pedido.costo_envio === 0 ? "Sin costo" : pesos.format(pedido.costo_envio);
+  document.getElementById("conf-total").textContent = pesos.format(pedido.total);
+  document.getElementById("conf-referencia").textContent = `Pedido ${pedido.id}`;
+  mostrarVista("vista-confirmado");
+  document.getElementById("seguir-comprando").focus();
+}
+
+document.getElementById("seguir-comprando").addEventListener("click", () => {
+  cerrarCarrito();
+  mostrarVista("vista-carrito");
+});
+
+actualizarCarrito();
+
+/* =======================================================================
+   AL ABRIR LA PÁGINA: se cargan productos y barrios desde la base
+   ======================================================================= */
+async function iniciar() {
+  try {
+    const [rProductos, rZonas] = await Promise.all([llamarApi("productos.php"), llamarApi("zonas.php")]);
+    productos = rProductos.productos;
+
+    zonas = rZonas.zonas;
+    const opciones = `<option value="">Elegí tu barrio</option>` +
+      zonas.map(z => `<option value="${z.id}">${z.nombre} (envío ${pesos.format(z.costo)})</option>`).join("");
+    document.getElementById("cre-zona").innerHTML = opciones;
+    document.getElementById("fin-zona").innerHTML = opciones;
+
+    armarCarrusel();
+    mostrarCreditos();
+  } catch (e) {
+    const aviso = document.getElementById("aviso-conexion");
+    aviso.textContent = e.message;
+    aviso.hidden = false;
+  }
+}
+iniciar();
+</script>
+</body>
+</html>
